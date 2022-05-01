@@ -1,5 +1,40 @@
 const { readFile, writeFile } = require('fs/promises');
 const [command, title, content] = process.argv.slice(2);
+const { Sequelize, Model, DataTypes } = require('sequelize');
+const config = require('./config/mysql');
+
+const sequelize = new Sequelize(config.database, config.username, config.password, {
+    dialect: config.dialect
+});
+
+const notes = sequelize.define('note', {
+    id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    content: {
+        type: DataTypes.TEXT
+    }
+}, {
+    timestamps: false
+});
+
+const syncDb = async() => {
+    try {
+        await sequelize.authenticate();
+        await sequelize.sync();
+        console.log('Got connect and sync');
+    }
+    catch(e) {
+        console.error(e);
+    }
+}
 
 const parser = (data) => {
     return JSON.parse(data);
@@ -61,6 +96,9 @@ const help = () => {
 }
 
 switch(command) {
+    case 'sync':
+        syncDb();
+        break;
 	case 'help':
 		help();
 		break;
