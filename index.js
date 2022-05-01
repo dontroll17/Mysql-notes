@@ -53,7 +53,17 @@ const remove = async (title) => {
     console.log('note delete');
 }
 
+const help = () => {
+	console.log('list - list all\n'
+		+ 'remove + title - remove note\n'
+		+ 'create + title + ctx - create note\n'
+		+ 'view + title - view note\n');
+}
+
 switch(command) {
+	case 'help':
+		help();
+		break;
     case 'list':
         list();
         break;
