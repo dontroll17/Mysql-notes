@@ -1,4 +1,3 @@
-const { readFile, writeFile } = require('fs/promises');
 const { createInterface } = require('readline');
 const { Sequelize, DataTypes } = require('sequelize');
 const config = require('./config/mysql');
@@ -41,11 +40,7 @@ const syncDb = async() => {
     }
 }
 
-const parser = (data) => {
-    return JSON.parse(data);
-} 
-
-function completer(line) {
+const completer = (line) => {
     return line.trim().split(' ');
   }
 
@@ -88,12 +83,12 @@ const view = async (title) => {
 }
 
 const remove = async (title) => {
-    const data = await readFile('notes.json');
-    let notes = parser(data);
-    notes = notes.filter(note => note.title !== title);
-    const json = JSON.stringify(notes);
-    await writeFile('notes.json', json);
-    console.log('note delete');
+    await notes.destroy({
+        where: {
+            title: title
+        }
+    });
+    console.log('notes delete');
 }
 
 const help = () => {
