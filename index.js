@@ -1,6 +1,5 @@
 const { readFile, writeFile } = require('fs/promises');
 const { createInterface } = require('readline');
-//const [command, title, content] = process.argv.slice(2);
 const { Sequelize, DataTypes } = require('sequelize');
 const config = require('./config/mysql');
 
@@ -61,27 +60,30 @@ const create = async (title, content) => {
 }
 
 const list = async () => {
-    const data = await readFile('notes.json');
-    const notes = parser(data);
-    if(notes.length < 1) {
+    const data = await notes.findAll({
+        raw: true
+    });
+    if(data.length < 1) {
         console.log('No notes');
     }
     else {
-        for(const note of notes) {
-            console.log(note);
-        }
+        console.log(data);
     }
+    
 }
 
 const view = async (title) => {
-    const data = await readFile('notes.json');
-    const notes = parser(data);
-    const note = notes.find( note => note.title === title);
-    if(!note) {
+    const data = await notes.findAll({
+        raw: true,
+        where: {
+            title: title
+        }
+    });
+    if(!data) {
         console.log('Not found');
     }
     else {
-        console.log(note.content);
+        console.log(data);
     }
 }
 
