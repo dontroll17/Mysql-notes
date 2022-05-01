@@ -1,7 +1,13 @@
 const { readFile, writeFile } = require('fs/promises');
-const [command, title, content] = process.argv.slice(2);
-const { Sequelize, Model, DataTypes } = require('sequelize');
+const { createInterface } = require('readline');
+//const [command, title, content] = process.argv.slice(2);
+const { Sequelize, DataTypes } = require('sequelize');
 const config = require('./config/mysql');
+
+const readline = createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
 const sequelize = new Sequelize(config.database, config.username, config.password, {
     dialect: config.dialect
@@ -40,13 +46,13 @@ const parser = (data) => {
     return JSON.parse(data);
 } 
 
+function completer(line) {
+    return line.trim().split(' ');
+  }
+
 const create = async (title, content) => {
     try {
-        const data = await readFile('notes.json');
-        const notes = parser(data);
-        notes.push({ title, content });
-        const notesToJson = JSON.stringify(notes);
-        await writeFile('notes.json', notesToJson);
+        await notes.create( { title: title, content: content } );
         console.log('notes created');
     }
     catch(e) {
@@ -92,27 +98,41 @@ const help = () => {
 	console.log('list - list all\n'
 		+ 'remove + title - remove note\n'
 		+ 'create + title + ctx - create note\n'
-		+ 'view + title - view note\n');
+		+ 'view + title - view note\n'
+        + 'sync - sync database\n'
+        + 'exit - exit process');
 }
 
-switch(command) {
-    case 'sync':
-        syncDb();
-        break;
-	case 'help':
-		help();
-		break;
-    case 'list':
-        list();
-        break;
-    case 'view':
-        view(title);
-        break;
-    case 'create':
-        create(title, content);
-        break;
-    case 'remove':
-        remove(title);
-        break;
-    default: console.log('unknown command');
+const exit = async() => {
+    await sequelize. close();
+    console.log('connection close, goodbye =3');
+    process.exit(1);
 }
+
+readline.on('line', line => {
+    const [command, title, content] = completer(line);
+    switch(command) {
+        case 'exit':
+            exit();
+            break;
+        case 'sync':
+            syncDb();
+            break;
+        case 'help':
+            help();
+            break;
+        case 'list':
+            list();
+            break;
+        case 'view':
+            view(title);
+            break;
+        case 'create':
+            create(title, content);
+            break;
+        case 'remove':
+            remove(title);
+            break;
+        default: console.log('unknown command');
+    }
+});
